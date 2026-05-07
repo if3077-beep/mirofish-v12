@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiroFish v13 - MBTI 性格推演</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="bg-gradient"></div>
+
+  <div class="app">
+    <!-- ========== Phase 1: Input ========== -->
+    <div id="phaseInput" class="phase active">
+      <div class="phase-inner">
+        <div class="header">
+          <div class="logo-mark">
+            <div class="logo-orb"></div>
+            <div class="logo-ring"></div>
+            <div class="logo-ring2"></div>
+          </div>
+          <div class="title">
+            <span class="title-line">MiroFish</span>
+            <span class="title-sub">MBTI 性格推演 · 三路径模拟</span>
+          </div>
+        </div>
+
+        <div class="daily-inspiration">
+          <span class="inspiration-icon">💬</span>
+          <div>
+            <div class="inspiration-text" id="inspirationText"></div>
+            <div class="inspiration-author" id="inspirationAuthor"></div>
+          </div>
+        </div>
+
+        <div class="scene-carousel">
+          <div class="scene-track" id="sceneTrack">
+            <div class="scene-card" data-text="我在考虑要不要辞职，但又怕找不到更好的" data-mood="anxious">
+              <span class="scene-icon">💼</span>
+              <span class="scene-title">想辞职</span>
+              <span class="scene-desc">骑驴找马还是裸辞</span>
+            </div>
+            <div class="scene-card" data-text="和对象吵架了，冷战三天了不知道该不该主动" data-mood="sad">
+              <span class="scene-icon">💔</span>
+              <span class="scene-title">感情冷战</span>
+              <span class="scene-desc">谁先低头</span>
+            </div>
+            <div class="scene-card" data-text="想创业但怕失败，手里存款不多" data-mood="fearful">
+              <span class="scene-icon">🚀</span>
+              <span class="scene-title">想创业</span>
+              <span class="scene-desc">风险与机遇</span>
+            </div>
+            <div class="scene-card" data-text="考研还是工作，纠结了半年" data-mood="confused">
+              <span class="scene-icon">📚</span>
+              <span class="scene-title">考研or工作</span>
+              <span class="scene-desc">人生岔路口</span>
+            </div>
+            <div class="scene-card" data-text="股票亏了很多，不知道该割肉还是死扛" data-mood="anxious">
+              <span class="scene-icon">📈</span>
+              <span class="scene-title">投资亏损</span>
+              <span class="scene-desc">止损or坚守</span>
+            </div>
+            <div class="scene-card" data-text="最近焦虑失眠很严重，感觉什么都提不起兴趣" data-mood="sad">
+              <span class="scene-icon">🧠</span>
+              <span class="scene-title">焦虑失眠</span>
+              <span class="scene-desc">身心俱疲</span>
+            </div>
+            <div class="scene-card" data-text="要不要接手家族生意，怕做不好辜负父母" data-mood="fearful">
+              <span class="scene-icon">👨‍👩‍👧</span>
+              <span class="scene-title">家族生意</span>
+              <span class="scene-desc">责任与自我</span>
+            </div>
+            <div class="scene-card" data-text="副业做了三个月没什么起色，要不要放弃" data-mood="confused">
+              <span class="scene-icon">📱</span>
+              <span class="scene-title">副业瓶颈</span>
+              <span class="scene-desc">坚持or止损</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-container">
+          <div class="input-glow"></div>
+          <textarea id="userInput" rows="4" placeholder="试着这样写：我在考虑要不要接手家族生意，但怕做不好…"></textarea>
+          <div class="input-bar">
+            <div class="mood-mini">
+              <button class="mood-chip" data-mood="anxious">😰 焦虑</button>
+              <button class="mood-chip" data-mood="angry">😤 愤怒</button>
+              <button class="mood-chip" data-mood="sad">😢 难过</button>
+              <button class="mood-chip" data-mood="confused">😵‍💫 迷茫</button>
+              <button class="mood-chip" data-mood="fearful">😨 恐惧</button>
+              <button class="mood-chip" data-mood="hopeful">🤩 期待</button>
+              <button class="mood-chip" data-mood="neutral">😐 平静</button>
+            </div>
+            <button class="btn-glow" id="btnNext" disabled>推演 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Phase 2: Calibrate ========== -->
+    <div id="phaseCalibrate" class="phase">
+      <div class="phase-inner">
+        <div class="phase-nav">
+          <button class="btn-ghost" id="btnBack">← 返回</button>
+          <h2>校准推演参数</h2>
+          <div></div>
+        </div>
+
+        <div class="keyword-cloud" id="keywordCloud"></div>
+
+        <!-- MBTI 预选 -->
+        <div class="mbti-pref" id="mbtiPref"></div>
+
+        <!-- 口吻选择 -->
+        <div class="persona-selector">
+          <div class="persona-title">选择推演口吻</div>
+          <div class="persona-options">
+            <button class="persona-btn selected" data-persona="brutal">
+              <span class="persona-icon">🔥</span>
+              <span class="persona-name">毒舌朋友</span>
+              <span class="persona-desc">直接骂醒你，不给面子</span>
+            </button>
+            <button class="persona-btn" data-persona="elder">
+              <span class="persona-icon">🪞</span>
+              <span class="persona-name">年长10岁的自己</span>
+              <span class="persona-desc">讲真实教训，像照镜子</span>
+            </button>
+            <button class="persona-btn" data-persona="stranger">
+              <span class="persona-icon">🤝</span>
+              <span class="persona-name">过来人</span>
+              <span class="persona-desc">同样困境的人，分享选择</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="slider-stack">
+          <div class="slider-row">
+            <div class="slider-info">
+              <span class="slider-label">影响范围</span>
+              <span class="slider-val" id="valScope">仅自己</span>
+            </div>
+            <input type="range" class="range-slider" id="slScope" min="1" max="5" value="1">
+            <div class="slider-range"><span>仅自己</span><span>全社会</span></div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-info">
+              <span class="slider-label">情绪强度</span>
+              <span class="slider-val" id="valIntensity">中等</span>
+            </div>
+            <input type="range" class="range-slider" id="slIntensity" min="1" max="5" value="3">
+            <div class="slider-range"><span>微弱</span><span>剧烈</span></div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-info">
+              <span class="slider-label">推演时间跨度</span>
+              <span class="slider-val" id="valTime">一个月</span>
+            </div>
+            <input type="range" class="range-slider" id="slTime" min="1" max="5" value="3">
+            <div class="slider-range"><span>一周</span><span>一年</span></div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-info">
+              <span class="slider-label">不确定性</span>
+              <span class="slider-val" id="valUncertainty">中等</span>
+            </div>
+            <input type="range" class="range-slider" id="slUncertainty" min="1" max="5" value="3">
+            <div class="slider-range"><span>几乎确定</span><span>完全未知</span></div>
+          </div>
+        </div>
+
+        <div class="factors-wrap">
+          <div class="factors-title">外部影响因素（可多选）</div>
+          <div class="factor-grid">
+            <button class="factor-chip" data-factor="media">📱 社交媒体放大</button>
+            <button class="factor-chip" data-factor="authority">👔 权威介入</button>
+            <button class="factor-chip" data-factor="peer">👥 同辈压力</button>
+            <button class="factor-chip" data-factor="money">💰 经济因素</button>
+            <button class="factor-chip" data-factor="time">⏰ 时间紧迫</button>
+            <button class="factor-chip" data-factor="reputation">🎭 面子/声誉</button>
+            <button class="factor-chip" data-factor="health">❤️ 健康相关</button>
+            <button class="factor-chip" data-factor="family">👨‍👩‍👧 家庭牵扯</button>
+          </div>
+          <div class="factor-feedback" id="factorFeedback" style="display:none"></div>
+        </div>
+
+        <div class="phase-footer">
+          <button class="btn-glow large" id="btnStart">
+            <span>开始推演</span>
+            <span class="btn-shine"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Phase 3: Simulate ========== -->
+    <div id="phaseSimulate" class="phase">
+      <div class="phase-inner">
+        <div class="sim-bar">
+          <div class="sim-status"><span class="pulse-dot"></span><span>推演中...</span></div>
+          <span class="sim-engine">MiroFish v13</span>
+        </div>
+
+        <div class="empathy-section">
+          <span class="empathy-icon">🪞</span>
+          <div class="empathy-text" id="empathyText"></div>
+        </div>
+
+        <div class="sim-progress">
+          <div class="sim-progress-bar" id="simProgressBar"></div>
+        </div>
+
+        <div class="sim-steps" id="simSteps"></div>
+
+        <div class="loading-insights" id="loadingInsights"></div>
+      </div>
+    </div>
+
+    <!-- ========== Phase 4: Result ========== -->
+    <div id="phaseResult" class="phase">
+      <div class="phase-inner">
+        <div class="result-empathy">
+          <div class="empathy-avatar" id="personaResultIcon">🔥</div>
+          <div class="empathy-bubble" id="empathyBubble"></div>
+        </div>
+
+        <!-- MBTI 性格卡片 -->
+        <div class="section-block reveal" id="mbtiCard">
+          <div class="mbti-card">
+            <div class="mbti-card-header">
+              <span class="mbti-card-icon">🧠</span>
+              <span class="mbti-card-title">性格分析</span>
+            </div>
+            <div class="mbti-type" id="mbtiType">--</div>
+            <div class="mbti-confidence" id="mbtiConfidence">--</div>
+            <div class="mbti-bars" id="mbtiBars"></div>
+            <div class="mbti-style" id="mbtiStyle"></div>
+          </div>
+        </div>
+
+        <div class="paths-header">
+          <div class="paths-title">三条推演路径</div>
+          <div class="paths-sub">每条路径只讲关键转折，不废话</div>
+        </div>
+
+        <div class="prob-display">
+          <div class="prob-item prob-opt">
+            <div class="prob-number" id="probOptimistic">0%</div>
+            <div class="prob-label">乐观</div>
+          </div>
+          <div class="prob-item prob-neu">
+            <div class="prob-number" id="probNeutral">0%</div>
+            <div class="prob-label">中性</div>
+          </div>
+          <div class="prob-item prob-pes">
+            <div class="prob-number" id="probPessimistic">0%</div>
+            <div class="prob-label">悲观</div>
+          </div>
+        </div>
+
+        <div class="paths-grid">
+          <div class="path-card path-optimistic reveal">
+            <div class="path-header">
+              <span class="path-icon">🌅</span>
+              <span class="path-name">乐观路径</span>
+              <span class="path-prob" id="probOptLabel"></span>
+            </div>
+            <div class="path-body" id="pathOptimistic"></div>
+          </div>
+          <div class="path-card path-neutral reveal">
+            <div class="path-header">
+              <span class="path-icon">🌊</span>
+              <span class="path-name">中性路径</span>
+              <span class="path-prob" id="probNeuLabel"></span>
+            </div>
+            <div class="path-body" id="pathNeutral"></div>
+          </div>
+          <div class="path-card path-pessimistic reveal">
+            <div class="path-header">
+              <span class="path-icon">🌧️</span>
+              <span class="path-name">悲观路径</span>
+              <span class="path-prob" id="probPesLabel"></span>
+            </div>
+            <div class="path-body" id="pathPessimistic"></div>
+          </div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="section-title">未来三个月最可能发生的三件烂事</div>
+          <div class="bad-things-list stagger" id="badThingsList"></div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="section-title">真实数据</div>
+          <div class="stats-grid stagger" id="statsGrid"></div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="section-title">延伸阅读</div>
+          <div class="reading-cards stagger" id="readingCards"></div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="poll-section">
+            <div class="poll-question">哪个结局最像你？</div>
+            <div class="poll-options">
+              <div class="poll-option" data-vote="optimistic">
+                <span class="poll-option-icon">🌅</span>
+                <span class="poll-option-text">乐观路径——我就是这么想的</span>
+              </div>
+              <div class="poll-option" data-vote="neutral">
+                <span class="poll-option-icon">🌊</span>
+                <span class="poll-option-text">中性路径——大概率就这样</span>
+              </div>
+              <div class="poll-option" data-vote="pessimistic">
+                <span class="poll-option-icon">🌧️</span>
+                <span class="poll-option-text">悲观路径——我怕的就是这个</span>
+              </div>
+            </div>
+            <div class="poll-result" id="pollResult">
+              <div class="poll-bar-wrap">
+                <span class="poll-bar-label">乐观</span>
+                <div class="poll-bar-track"><div class="poll-bar-fill fill-opt" id="pollBarOpt" style="width:0%"></div></div>
+                <span class="poll-bar-pct" id="pollPctOpt">--</span>
+              </div>
+              <div class="poll-bar-wrap">
+                <span class="poll-bar-label">中性</span>
+                <div class="poll-bar-track"><div class="poll-bar-fill fill-neu" id="pollBarNeu" style="width:0%"></div></div>
+                <span class="poll-bar-pct" id="pollPctNeu">--</span>
+              </div>
+              <div class="poll-bar-wrap">
+                <span class="poll-bar-label">悲观</span>
+                <div class="poll-bar-track"><div class="poll-bar-fill fill-pes" id="pollBarPes" style="width:0%"></div></div>
+                <span class="poll-bar-pct" id="pollPctPes">--</span>
+              </div>
+            </div>
+            <div class="poll-voted-count" id="pollVotedCount"></div>
+          </div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="emoji-section">
+            <div class="emoji-header">
+              <div class="emoji-header-left">
+                <span class="emoji-header-icon">🎨</span>
+                <div>
+                  <div class="emoji-header-title">Emoji 合成器</div>
+                  <div class="emoji-header-sub">拖拽移动 · 滚轮/双指缩放 · 双击删除</div>
+                </div>
+              </div>
+            </div>
+            <div class="emoji-keyword-bar">
+              <input class="emoji-keyword-input" id="emojiKeywordInput" placeholder="输入关键词（如：焦虑、爱情、工作）">
+              <button class="emoji-btn-small primary" id="btnEmojiGenerate">生成</button>
+              <button class="emoji-btn-small" id="btnEmojiRandom">随机</button>
+            </div>
+            <div class="emoji-canvas-wrap">
+              <canvas id="emojiCanvas"></canvas>
+              <div class="emoji-canvas-hint">拖拽移动 · 滚轮/双指缩放 · 双击删除</div>
+            </div>
+            <div class="emoji-palette">
+              <div class="emoji-palette-tabs" id="emojiPaletteTabs"></div>
+              <div class="emoji-palette-grid" id="emojiPaletteGrid"></div>
+            </div>
+            <div class="emoji-actions">
+              <button class="emoji-btn-small" id="btnEmojiClear">清空</button>
+              <button class="emoji-btn-small" id="btnEmojiUndo">撤销</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block reveal">
+          <div class="rating-section">
+            <div class="rating-question">给这个推演打个分（1-5星）</div>
+            <div class="rating-stars" id="ratingStars">
+              <span class="rating-star" data-rating="1">⭐</span>
+              <span class="rating-star" data-rating="2">⭐</span>
+              <span class="rating-star" data-rating="3">⭐</span>
+              <span class="rating-star" data-rating="4">⭐</span>
+              <span class="rating-star" data-rating="5">⭐</span>
+            </div>
+            <div class="rating-feedback">
+              <input class="rating-input" id="ratingFeedbackInput" placeholder="它漏掉了什么？（可选）">
+              <button class="rating-submit" id="btnRatingSubmit">提交</button>
+            </div>
+            <div class="rating-thanks" id="ratingThanks">感谢你的反馈！</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-ghost" id="btnExport"><span>📸 保存截图</span></button>
+          <button class="btn-ghost" id="btnShare"><span>📋 复制摘要</span></button>
+          <button class="btn-glow" id="btnNew">🔄 新的推演</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="audio.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
